@@ -1,0 +1,486 @@
+---
+title: "Relatório Trimestral"
+subtitle: "Descrição dos dados da Pesquisa Nacional por Amostra de Domicílios Contínua do IBGE"
+author: Observatório do Mercado de Trabalho do Maranhão
+date: 3º Trimestre de 2019
+output:
+  beamer_presentation:
+    theme: "Antibes"
+    colortheme: "whale"
+    fonttheme: "structurebold"
+    slide_level: 2
+    fig_height: 5
+
+---
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse) 
+
+library(sidrar) 
+
+library(forcats) 
+
+library(tidyr) 
+
+library(sidrar)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+populacao = get_sidra(api='/t/5917/n3/21/v/606/p/all/c2/6794')$Valor 
+t1 = get_sidra(api='/t/4092/n3/21/v/1641/p/all/c629/all') 
+po = get_sidra(api='/t/4097/n3/21/v/4090/p/all/c11913/all') 
+po2 = get_sidra(api='/t/5434/n3/21/v/4090/p/all/c693/all')  
+renda = get_sidra(api='/t/6472/n3/21/v/5929,5933/p/all') 
+massa = get_sidra(api='/t/6474/n3/21/v/6288,6293/p/all') 
+dados<-get_sidra(api = '/t/4093/n3/21/v/4088,4092,4099/p/all/c2/6794/d/v4099%201') 
+dtaxauf<- get_sidra(api ='/t/4093/n1/all/n3/all/v/1641,4099/p/all/c2/6794/d/v4099%201') 
+```
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+dados<-dados %>%  
+  dplyr::rename(D3C = `Trimestre (Código)`) %>%  
+  dplyr::rename(D3N = `Trimestre`) 
+
+ 
+t1<-t1 %>%  
+  dplyr::rename(D3C = `Trimestre (Código)`) %>%  
+  dplyr::rename(D3N = `Trimestre`) 
+
+ 
+po2<-po2 %>%  
+  dplyr::rename(D3C = `Trimestre (Código)`) %>%  
+  dplyr::rename(D3N = `Trimestre`) %>%  
+  dplyr::rename(atividade = `Grupamento de atividades no trabalho principal - PNADC`) 
+
+po<-po %>%  
+  dplyr::rename(D3C = `Trimestre (Código)`) %>%  
+  dplyr::rename(D3N = `Trimestre`)
+
+renda<-renda %>%  
+  dplyr::rename(D3C = `Trimestre (Código)`) %>%  
+  dplyr::rename(D3N = `Trimestre`) 
+
+massa<-massa %>%  
+  dplyr::rename(D3C = `Trimestre (Código)`) %>%  
+  dplyr::rename(D3N = `Trimestre`) 
+```
+
+
+## Apresentação
+
+Os dados apresentados neste relatório sobre o mercado de trabalho no Maranhão são provenientes da Pesquisa Nacional por Amostra de Domicílios Contínua (Pnad-c) do Instituto Brasileiro de Geografia e Estatística (IBGE). 
+
+A Pnad-c disponibiliza dados agregrados para o estado, capital e região metropolitana de São Luís. Os dados aqui apresentados tratam, de forma agregada, do estado do Maranhão. 
+
+O relatório está atualizado com os dados mais recentes do IBGE, isto, o 3º trimestre de 2019. 
+
+
+# Composição da Força de Trabalho
+
+## População em Idade Ativa
+
+```{r,echo=FALSE, warning=FALSE, message=FALSE}
+
+pia<-t1 %>%  
+  filter(`Variável`=="Pessoas de 14 anos ou mais de idade") %>%  
+  filter(`Condição em relação à força de trabalho e condição de ocupação`=="Total") 
+
+ pia$D3N <- factor(pia$D3N, levels = pia$D3N[order(pia$D3C)]) 
+
+ggplot(pia, aes(x=D3N, y=Valor, group = 1))+ 
+  geom_line()+ 
+  xlab('')+ylab('Milhões')+ 
+  geom_point(size=9, shape=21, colour="#1a476f", fill="lightblue")+ 
+  geom_text(aes(label=prettyNum(Valor, big.mark = ".", decimal.mark =",")), size =2.1,  
+            hjust=0.5, vjust=0.5, colour="black")+ 
+  labs(title='Evolução da população em idade ativa (PIA)', 
+       caption='Fonte: PNAD Contínua/IBGE. Elaboração: OMT-MA.')+ 
+  theme_bw()+ theme(axis.text.x=element_text(angle=90, hjust=1)) 
+```
+
+
+## População Economicamente Ativa
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+pea<-dados %>%  
+  filter(`Variável`=="Pessoas de 14 anos ou mais de idade, na força de trabalho, na semana de referência") 
+
+pea$D3N <- factor(pea$D3N, levels = pea$D3N[order(pea$D3C)]) 
+
+ggplot(pea, aes(x=D3N, y=Valor, group = 1))+ 
+  geom_line()+ 
+  xlab('')+ylab('Milhões')+ 
+  geom_point(size=9, shape=21, colour="#1a476f", fill="lightblue")+ 
+  geom_text(aes(label=prettyNum(Valor, big.mark = ".", decimal.mark =",")), size =2.1,  
+            hjust=0.5, vjust=0.5, colour="black")+ 
+  labs(title='Evolução da população economicamente ativa (PEA)', 
+       caption='Fonte: PNAD Contínua/IBGE. Elaboração: OMT-MA.')+ 
+  theme_bw()+ theme(axis.text.x=element_text(angle=90, hjust=1)) 
+```
+
+
+# Desemprego e Ocupação
+
+## Taxa de Desocupação
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+taxa<- dados %>%  
+    filter(`Variável`=="Taxa de desocupação, na semana de referência, das pessoas de 14 anos ou mais de idade") 
+
+taxa$D3N <- factor(taxa$D3N, levels = taxa$D3N[order(taxa$D3C)]) 
+
+ 
+ggplot(taxa, aes(x=D3N, y=Valor, group = 1))+ 
+  geom_line()+ 
+  xlab('')+ylab('Taxa de Desocupação (%)')+ 
+  geom_point(size=9, shape=21, colour="#1a476f", fill="lightblue")+ 
+  geom_text(aes(label=prettyNum(Valor, big.mark = ".", decimal.mark =",")), size =2.1,  
+            hjust=0.5, vjust=0.5, colour="black")+ 
+  labs(title='Evolução da Taxa de Desocupação no Maranhão', 
+       subtitle = "Taxa diminuiu para 14.1%", 
+       caption='Fonte: PNAD Contínua/IBGE. Elaboração: OMT-MA.')+ 
+  theme_bw()+ theme(axis.text.x=element_text(angle=90, hjust=1)) 
+```
+
+
+
+## Pessoas Desocupadas 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+ pd<-dados %>% 
+  filter(Variável=="Pessoas de 14 anos ou mais de idade, desocupadas na semana de referência")
+pd$D3N<- factor(pd$D3N, levels = pd$D3N[order(pd$D3C)])
+ggplot(pd, aes(x=D3N, y=Valor, group = 1))+
+  geom_line()+
+  xlab('')+ylab('Em mil')+
+  geom_point(size=9, shape=21, colour="#1a476f", fill="lightblue")+
+  geom_text(aes(label=prettyNum(Valor, big.mark = ".", decimal.mark =",")), size =2.1, 
+            hjust=0.5, vjust=0.5, colour="black")+
+  labs(title="Evolução do número de desocupados",
+       subtitle = "13 mil pessoas deixaram a desocupação no trimestre",
+       caption='Fonte: PNAD Contínua/IBGE. Elaboração: OMT-MA')+
+  theme_bw()+ theme(axis.text.x=element_text(angle=90, hjust=1))
+
+```
+
+## Número de pessoas ocupadas
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+pocupada<-t1 %>% 
+  filter(`Condição em relação à força de trabalho e condição de ocupação`== "Força de trabalho - ocupada")
+
+pocupada$D3N <- factor(pocupada$D3N, levels = pocupada$D3N[order(pocupada$D3C)])
+
+ggplot(pocupada, aes(x=D3N, y=Valor, group = 1))+
+  geom_line()+
+  xlab('')+ylab('Em milhões')+
+  geom_point(size=9, shape=21, colour="#1a476f", fill="lightblue")+
+  geom_text(aes(label=prettyNum(Valor, big.mark = ".", decimal.mark =",")), size =2.1, 
+            hjust=0.5, vjust=0.5, colour="black")+
+  labs(title='População Ocupada no Maranhão',
+       subtitle = "35 mil pessoas encontraram ocupação no trimestre",
+       caption='Fonte: PNAD Contínua/IBGE. Elaboração: OMT-MA.')+
+  theme_bw()+ theme(axis.text.x=element_text(angle=90, hjust=1))
+```
+
+
+## Destaques
+
+- A *População Economicamente Ativa* no Estado do Maranhão teve um aumento no 3º. trimestre de 2019, registrando comportamento similar ao observado em 2018.
+- A *População Ocupada* registrou acréscimo de 35 mil pessoas, apresentando neste trimestre 2.266 milhões de pessoas. 
+- A *População Desocupada*, por sua vez, registrou também uma melhora em relaçao ao trimestre anterior. Com isso, a *Taxa de Desocupação* diminuiu, baixando para 14.1%. 
+
+
+# Ocupados por posição na ocupação
+
+## Número de ocupados no setor privado
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+privado<-po %>% 
+  filter(`Posição na ocupação e categoria do emprego no trabalho principal`== "Empregado no setor privado, exclusive trabalhador doméstico")
+       
+privado$D3N <- factor(privado$D3N, levels = privado$D3N[order(po$D3C)])
+
+ggplot(privado, aes(x=D3N, y=Valor, group = 1))+
+  geom_line()+
+  xlab('')+ylab('Em Mil')+
+  geom_point(size=9, shape=21, colour="#1a476f", fill="lightblue")+
+  geom_text(aes(label=prettyNum(Valor, big.mark = ".", decimal.mark =",")), size =2.1, 
+            hjust=0.5, vjust=0.5, colour="black")+
+  labs(title='Evolução da ocupação no setor privado',
+       caption='Fonte: PNAD Contínua/IBGE. Elaboração: OMT-MA.')+
+  theme_bw()+ theme(axis.text.x=element_text(angle=90, hjust=1))
+
+```
+
+
+## Ocupados com Carteira Assinada 
+
+```{r,echo=FALSE, warning=FALSE, message=FALSE}
+
+ccarteira<-po %>% 
+  filter(`Posição na ocupação e categoria do emprego no trabalho principal`=="Empregado no setor privado, exclusive trabalhador doméstico - com carteira de trabalho assinada")
+
+ccarteira$D3N <- factor(ccarteira$D3N, levels = ccarteira$D3N[order(po$D3C)])
+
+ggplot(ccarteira, aes(x=D3N, y=Valor, group = 1))+
+  geom_line()+
+  xlab('')+ylab('Em Mil')+
+  geom_point(size=9, shape=21, colour="#1a476f", fill="lightblue")+
+  geom_text(aes(label=prettyNum(Valor, big.mark = ".", decimal.mark =",")), size =2.1, 
+            hjust=0.5, vjust=0.5, colour="black")+
+  labs(title='Evolução da ocupação com carteira assinada',
+       caption='Fonte: PNAD Contínua/IBGE. Elaboração: OMT-MA.')+
+  theme_bw()+ theme(axis.text.x=element_text(angle=90, hjust=1))
+```
+
+## Ocupados sem carteira assinada 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+scarteira<-po %>% 
+  filter(`Posição na ocupação e categoria do emprego no trabalho principal`=="Empregado no setor privado, exclusive trabalhador doméstico - sem carteira de trabalho assinada")
+
+scarteira$D3N <- factor(ccarteira$D3N, levels = ccarteira$D3N[order(po$D3C)])
+
+ggplot(scarteira, aes(x=D3N, y=Valor, group = 1))+
+  geom_line()+
+  xlab('')+ylab('Em mil')+
+  geom_point(size=9, shape=21, colour="#1a476f", fill="lightblue")+
+  geom_text(aes(label=prettyNum(Valor, big.mark = ".", decimal.mark =",")), size =2.1, 
+            hjust=0.5, vjust=0.5, shape=21, colour="black")+
+  labs(title='Evolução da ocupação sem carteira assinada',
+       caption='Fonte: PNAD Contínua/IBGE. Elaboração: OMT-MA.')+
+  theme_bw()+ theme(axis.text.x=element_text(angle=90, hjust=1))
+```
+
+
+## Número de Ocupados no Trabalho Doméstico
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+domestico<-po %>% 
+  filter(`Posição na ocupação e categoria do emprego no trabalho principal`=="Trabalhador doméstico")
+
+domestico$D3N <- factor(domestico$D3N, levels = domestico$D3N[order(po$D3C)])
+
+ggplot(domestico, aes(x=D3N, y=Valor, group = 1))+
+  geom_line()+
+  xlab('')+ylab('Em mil')+
+  geom_point(size=9, shape=21, colour="#1a476f", fill="lightblue")+
+  geom_text(aes(label=prettyNum(Valor, big.mark = ".", decimal.mark =",")), size =2.1, 
+            hjust=0.5, vjust=0.5, colour="black")+
+  labs(title='Evolução da ocupação no trabalho doméstico',
+       caption='Fonte: PNAD Contínua/IBGE. Elaboração: OMT-MA.')+
+  theme_bw()+ theme(axis.text.x=element_text(angle=90, hjust=1))
+
+```
+
+## Ocupados no setor público 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+publico<-po %>% 
+  filter(`Posição na ocupação e categoria do emprego no trabalho principal`=="Empregado no setor público")
+
+publico$D3N <- factor(publico$D3N, levels = publico$D3N[order(po$D3C)])
+
+ggplot(publico, aes(x=D3N, y=Valor, group = 1))+
+  geom_line()+
+  xlab('')+ylab('PIA')+
+  geom_point(size=9, shape=21, colour="#1a476f", fill="lightblue")+
+  geom_text(aes(label=prettyNum(Valor, big.mark = ".", decimal.mark =",")), size =2.1, 
+            hjust=0.5, vjust=0.5, shape=21, colour="black")+
+  labs(title='Evolução da ocupação no setor público',
+       caption='Fonte: PNAD Contínua/IBGE. Elaboração: OMT-MA.')+
+  theme_bw()+ theme(axis.text.x=element_text(angle=90, hjust=1))
+```
+
+
+
+## Trabalhadores por Conta Própria
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+cpropria<-po %>% 
+  filter(`Posição na ocupação e categoria do emprego no trabalho principal`=="Conta própria")
+
+cpropria$D3N <- factor(cpropria$D3N, levels = cpropria$D3N[order(po$D3C)])
+
+ggplot(cpropria, aes(x=D3N, y=Valor, group = 1))+
+  geom_line()+
+  xlab('')+ylab('Em mil')+
+  geom_point(size=9, shape=21, colour="#1a476f", fill="lightblue")+
+  geom_text(aes(label=prettyNum(Valor, big.mark = ".", decimal.mark =",")), size =2.1, 
+            hjust=0.5, vjust=0.5, shape=21, colour="black")+
+  labs(title='Evolução da ocupação por conta própria',
+       caption='Fonte: PNAD Contínua/IBGE. Elaboração: OMT-MA.')+
+  theme_bw()+ theme(axis.text.x=element_text(angle=90, hjust=1))
+
+```
+
+
+## Número de empregadores 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+empregador <- po %>% 
+  filter(`Posição na ocupação e categoria do emprego no trabalho principal` == "Empregador")
+
+empregador$D3N <- factor(empregador$D3N, levels = empregador$D3N[order(po$D3C)])
+
+ggplot(empregador, aes(x=D3N, y=Valor, group = 1))+
+  geom_line()+
+  xlab('')+ylab('Em mil')+
+  geom_point(size=9, shape=21, colour="#1a476f", fill="lightblue")+
+  geom_text(aes(label=prettyNum(Valor, big.mark = ".", decimal.mark =",")), size =2.1, 
+            hjust=0.5, vjust=0.5, shape=21, colour="black")+
+  labs(title='Evolução do número de empregadores',
+       caption='Fonte: PNAD Contínua/IBGE. Elaboração: OMT-MA.')+
+  theme_bw()+ theme(axis.text.x=element_text(angle=90, hjust=1))
+```
+
+## Trabalhador familiar auxiliar 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+fauxiliar<-po %>% 
+  filter(`Posição na ocupação e categoria do emprego no trabalho principal`=="Trabalhador familiar auxiliar")
+
+fauxiliar$D3N <- factor(fauxiliar$D3N, levels = fauxiliar$D3N[order(po$D3C)])
+
+ggplot(fauxiliar, aes(x=D3N, y=Valor, group = 1))+
+  geom_line()+
+  xlab('')+ylab('Em mil')+
+  geom_point(size=9, shape=21, colour="#1a476f", fill="lightblue")+
+  geom_text(aes(label=prettyNum(Valor, big.mark = ".", decimal.mark =",")), size =2.1, 
+            hjust=0.5, vjust=0.5, shape=21, colour="black")+
+  labs(title='Evolução da ocupação do trabalhador familiar auxiliar',
+       caption='Fonte: PNAD Contínua/IBGE. Elaboração: OMT-MA.')+
+  theme_bw()+ theme(axis.text.x=element_text(angle=90, hjust=1))
+
+```
+
+
+## Trabalhadores da Construção Civil 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+construcao<-po2 %>% 
+  filter(atividade=="Construção")
+
+construcao$D3N <- factor(construcao$D3N, levels = construcao$D3N[order(po$D3C)])
+
+ggplot(construcao, aes(x=D3N, y=Valor, group = 1))+
+  geom_line()+
+  xlab('')+ylab('Em mil')+
+  geom_point(size=9, shape=21, colour="#1a476f", fill="lightblue")+
+  geom_text(aes(label=prettyNum(Valor, big.mark = ".", decimal.mark =",")), size =2.1, 
+            hjust=0.5, vjust=0.5, shape=21, colour="black")+
+  labs(title='Evolução da ocupação na construção civil',
+       caption='Fonte: PNAD Contínua/IBGE. Elaboração: OMT-MA.')+
+  theme_bw()+ theme(axis.text.x=element_text(angle=90, hjust=1))
+
+```
+
+
+## Número de ocupados na agropecuária, pecuária e prod. florestal
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+agro<-po2 %>% 
+  filter(`atividade`=="Agricultura, pecuária, produção florestal, pesca e aquicultura")
+
+agro$D3N <- factor(agro$D3N, levels = agro$D3N[order(po$D3C)])
+
+ggplot(construcao, aes(x=D3N, y=Valor, group = 1))+
+  geom_line()+
+  xlab('')+ylab('Em mil')+
+  geom_point(size=9, shape=21, colour="#1a476f", fill="lightblue")+
+  geom_text(aes(label=prettyNum(Valor, big.mark = ".", decimal.mark =",")), size =2.1, 
+            hjust=0.5, vjust=0.5, shape=21, colour="black")+
+  labs(title='Evolução da ocupação na agricultura, pecuária, produção florestal',
+       caption='Fonte: PNAD Contínua/IBGE. Elaboração: OMT-MA.')+
+  theme_bw()+ theme(axis.text.x=element_text(angle=90, hjust=1))
+```
+
+## Número de ocupados na indústria 
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+industria<-po2 %>% 
+  filter(`atividade`=="Indústria geral")
+
+industria$D3N <- factor(industria$D3N, levels = industria$D3N[order(po$D3C)])
+
+ggplot(industria, aes(x=D3N, y=Valor, group = 1))+
+  geom_line()+
+  xlab('')+ylab('Em mil')+
+  geom_point(size=9, shape=21, colour="#1a476f", fill="lightblue")+
+  geom_text(aes(label=prettyNum(Valor, big.mark = ".", decimal.mark =",")), size =2.1, 
+            hjust=0.5, vjust=0.5, shape=21, colour="black")+
+  labs(title='Evolução da ocupação na indústria',
+       caption='Fonte: PNAD Contínua/IBGE. Elaboração: OMT-MA.')+
+  theme_bw()+ theme(axis.text.x=element_text(angle=90, hjust=1))
+
+```
+
+
+## Número de ocupados no Comércio
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+comercio<-po2 %>% 
+  filter(`atividade`=="Comércio, reparação de veículos automotores e motocicletas")
+
+comercio$D3N <- factor(comercio$D3N, levels = comercio$D3N[order(comercio$D3C)])
+ggplot(comercio, aes(x=D3N, y=Valor, group = 1))+
+  geom_line()+
+  xlab('')+ylab('Em mil')+
+  geom_point(size=9, shape=21, colour="#1a476f", fill="lightblue")+
+  geom_text(aes(label=prettyNum(Valor, big.mark = ".", decimal.mark =",")), size =2.1, 
+            hjust=0.5, vjust=0.5, shape=21, colour="black")+
+  labs(title='Evolução da ocupação no comércio',
+       caption='Fonte: PNAD Contínua/IBGE. Elaboração: OMT-MA.')+
+  theme_bw()+ theme(axis.text.x=element_text(angle=90, hjust=1))
+
+```
+
+# Rendimento Médio e Massa Salarial dos Ocupados 
+
+## Evolução da renda média real dos Ocupados
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+renda<-renda %>% 
+  filter(`Variável`=="Rendimento médio real de todos os trabalhos, habitualmente recebido por mês, pelas pessoas de 14 anos ou mais de idade, ocupadas na semana de referência, com rendimento de trabalho")
+
+renda$D3N <- factor(renda$D3N, levels = renda$D3N[order(renda$D3C)])
+
+ggplot(renda, aes(x=D3N, y=Valor, group = 1))+
+  geom_line()+
+  xlab('')+ylab('R$')+
+  geom_point(size=9, shape=21, colour="#1a476f", fill="lightblue")+
+  geom_text(aes(label=prettyNum(Valor, big.mark = ".", decimal.mark =",")), size =2.1, 
+            hjust=0.5, vjust=0.5, colour="black")+
+  labs(title='Rendimento médio real das pessoas ocupadas',
+       caption='Fonte: PNAD Contínua/IBGE. Elaboração: OMT-MA.')+
+  theme_bw()+ theme(axis.text.x=element_text(angle=90, hjust=1))
+
+
+```
+
+## Evolução da massa de rendimento real
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+massa<-massa %>% 
+  filter(`Variável`=="Massa de rendimento real de todos os trabalhos, habitualmente recebido por mês, pelas pessoas de 14 anos ou mais de idade, ocupadas na semana de referência, com rendimento de trabalho")
+
+massa$D3N <- factor(massa$D3N, levels = massa$D3N[order(massa$D3C)])
+
+ggplot(massa, aes(x=D3N, y=Valor, group = 1))+
+  geom_line()+
+  xlab('')+ylab('Em bilhões de R$')+
+  geom_point(size=9, shape=21, colour="#1a476f", fill="lightblue")+
+  geom_text(aes(label=prettyNum(Valor, big.mark = ".", decimal.mark =",")), size =2.1, 
+            hjust=0.5, vjust=0.5, shape=21, colour="black")+
+  labs(title='Evolução da massa de rendimento real',
+       caption='Fonte: PNAD Contínua/IBGE. Elaboração: OMT-MA.')+
+  theme_bw()+ theme(axis.text.x=element_text(angle=90, hjust=1))
+
+```
+
+## Para mais informações, acompanhe nosso site e perfil no instagram:
+
+- www.omtmaranhao.com 
+
+- www.instagram.com/omtmaranhao 
+
+- Email: omtmaranhao@gmail.com
